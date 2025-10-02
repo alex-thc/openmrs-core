@@ -10,17 +10,13 @@ import org.openmrs.RelationshipType;
 import org.openmrs.api.db.DAOException;
 import org.openmrs.api.db.PersonDAO;
 import org.openmrs.person.PersonMergeLog;
-import org.springframework.context.annotation.Profile;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.stereotype.Repository;
 
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-@Repository("personDAO")
-@Profile("mongo")
 public class MongoPersonDAO implements PersonDAO {
 
     private final MongoTemplate mongoTemplate;
