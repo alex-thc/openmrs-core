@@ -105,7 +105,8 @@
 		<property name="userDAO" ref="userDAO"/>
 	</bean>
 
-	<beans profile="mongo">
+	<!-- Default to Mongo-backed DAOs for Person and Patient -->
+	<beans>
 		<!-- MongoDB infrastructure -->
 		<bean id="mongoClient" class="com.mongodb.client.MongoClients" factory-method="create">
 			<constructor-arg value="mongodb://localhost:27017"/>
@@ -127,7 +128,8 @@
 		</bean>
 	</beans>
 
-	<beans profile="default">
+	<!-- Optional: enable Hibernate-backed Person/Patient DAOs by activating 'hibernate' profile -->
+	<beans profile="hibernate">
 		<bean id="patientDAO" class="org.openmrs.api.db.hibernate.HibernatePatientDAO">
 			<property name="sessionFactory" ref="sessionFactory"/>
 			<property name="searchSessionFactory" ref="searchSessionFactory"/>
