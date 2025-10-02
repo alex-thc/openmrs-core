@@ -1,0 +1,321 @@
+erDiagram
+    "Person" {
+        INTEGER "person_id" PK
+        STRING "uuid"
+        STRING "gender"
+        DATE "birthdate"
+        TIME "birthtime"
+        BOOLEAN "birthdate_estimated"
+        BOOLEAN "deathdate_estimated"
+        BOOLEAN "dead"
+        DATETIME "death_date"
+        INTEGER "cause_of_death" FK
+        STRING "cause_of_death_non_coded"
+        INTEGER "creator" FK
+        DATETIME "date_created"
+        INTEGER "changed_by" FK
+        DATETIME "date_changed"
+        BOOLEAN "voided"
+        INTEGER "voided_by" FK
+        DATETIME "date_voided"
+        STRING "void_reason"
+    }
+
+    "Patient" {
+        INTEGER "patient_id" PK
+        STRING "allergy_status"
+        INTEGER "creator" FK
+        DATETIME "date_created"
+        INTEGER "changed_by" FK
+        DATETIME "date_changed"
+        BOOLEAN "voided"
+        INTEGER "voided_by" FK
+        DATETIME "date_voided"
+        STRING "void_reason"
+    }
+
+    "PersonName" {
+        INTEGER "person_name_id" PK
+        STRING "uuid"
+        INTEGER "person_id" FK
+        BOOLEAN "preferred"
+        STRING "prefix"
+        STRING "given_name"
+        STRING "middle_name"
+        STRING "family_name_prefix"
+        STRING "family_name"
+        STRING "family_name2"
+        STRING "family_name_suffix"
+        STRING "degree"
+        INTEGER "creator" FK
+        DATETIME "date_created"
+        INTEGER "changed_by" FK
+        DATETIME "date_changed"
+        BOOLEAN "voided"
+        INTEGER "voided_by" FK
+        DATETIME "date_voided"
+        STRING "void_reason"
+    }
+
+    "PersonAddress" {
+        INTEGER "person_address_id" PK
+        STRING "uuid"
+        INTEGER "person_id" FK
+        BOOLEAN "preferred"
+        STRING "address1"
+        STRING "address2"
+        STRING "address3"
+        STRING "address4"
+        STRING "address5"
+        STRING "address6"
+        STRING "address7"
+        STRING "address8"
+        STRING "address9"
+        STRING "address10"
+        STRING "address11"
+        STRING "address12"
+        STRING "address13"
+        STRING "address14"
+        STRING "address15"
+        STRING "city_village"
+        STRING "county_district"
+        STRING "state_province"
+        STRING "country"
+        STRING "postal_code"
+        STRING "latitude"
+        STRING "longitude"
+        DATETIME "start_date"
+        DATETIME "end_date"
+        INTEGER "creator" FK
+        DATETIME "date_created"
+        INTEGER "changed_by" FK
+        DATETIME "date_changed"
+        BOOLEAN "voided"
+        INTEGER "voided_by" FK
+        DATETIME "date_voided"
+        STRING "void_reason"
+    }
+
+    "PersonAttribute" {
+        INTEGER "person_attribute_id" PK
+        STRING "uuid"
+        INTEGER "person_id" FK
+        INTEGER "person_attribute_type_id" FK
+        STRING "value"
+        INTEGER "creator" FK
+        DATETIME "date_created"
+        INTEGER "changed_by" FK
+        DATETIME "date_changed"
+        BOOLEAN "voided"
+        INTEGER "voided_by" FK
+        DATETIME "date_voided"
+        STRING "void_reason"
+    }
+
+    "PersonAttributeType" {
+        INTEGER "person_attribute_type_id" PK
+        STRING "uuid"
+        STRING "name"
+        STRING "description"
+        STRING "format"
+        INTEGER "foreign_key"
+        DOUBLE "sort_weight"
+        BOOLEAN "searchable"
+        STRING "edit_privilege" FK
+        INTEGER "creator" FK
+        DATETIME "date_created"
+        INTEGER "changed_by" FK
+        DATETIME "date_changed"
+        BOOLEAN "retired"
+        INTEGER "retired_by" FK
+        DATETIME "date_retired"
+        STRING "retire_reason"
+    }
+
+    "PatientIdentifier" {
+        INTEGER "patient_identifier_id" PK
+        STRING "uuid"
+        INTEGER "patient_id" FK
+        STRING "identifier"
+        INTEGER "identifier_type" FK
+        INTEGER "location_id" FK
+        INTEGER "patient_program_id" FK
+        BOOLEAN "preferred"
+        INTEGER "creator" FK
+        DATETIME "date_created"
+        INTEGER "changed_by" FK
+        DATETIME "date_changed"
+        BOOLEAN "voided"
+        INTEGER "voided_by" FK
+        DATETIME "date_voided"
+        STRING "void_reason"
+    }
+
+    "PatientIdentifierType" {
+        INTEGER "patient_identifier_type_id" PK
+        STRING "uuid"
+        STRING "name"
+        STRING "description"
+        STRING "format"
+        BOOLEAN "required"
+        STRING "format_description"
+        STRING "validator"
+        STRING "location_behavior"
+        STRING "uniqueness_behavior"
+        INTEGER "creator" FK
+        DATETIME "date_created"
+        INTEGER "changed_by" FK
+        DATETIME "date_changed"
+        BOOLEAN "retired"
+        INTEGER "retired_by" FK
+        DATETIME "date_retired"
+        STRING "retire_reason"
+    }
+
+    "Relationship" {
+        INTEGER "relationship_id" PK
+        STRING "uuid"
+        INTEGER "person_a" FK
+        INTEGER "relationship" FK
+        INTEGER "person_b" FK
+        DATETIME "start_date"
+        DATETIME "end_date"
+        INTEGER "creator" FK
+        DATETIME "date_created"
+        INTEGER "changed_by" FK
+        DATETIME "date_changed"
+        BOOLEAN "voided"
+        INTEGER "voided_by" FK
+        DATETIME "date_voided"
+        STRING "void_reason"
+    }
+
+    "RelationshipType" {
+        INTEGER "relationship_type_id" PK
+        STRING "uuid"
+        STRING "name"
+        STRING "description"
+        STRING "a_is_to_b"
+        STRING "b_is_to_a"
+        INTEGER "weight"
+        BOOLEAN "preferred"
+        INTEGER "creator" FK
+        DATETIME "date_created"
+        INTEGER "changed_by" FK
+        DATETIME "date_changed"
+        BOOLEAN "retired"
+        INTEGER "retired_by" FK
+        DATETIME "date_retired"
+        STRING "retire_reason"
+    }
+
+    "PersonMergeLog" {
+        INTEGER "person_merge_log_id" PK
+        STRING "uuid"
+        INTEGER "winner_person_id" FK
+        INTEGER "loser_person_id" FK
+        STRING "merged_data"
+        INTEGER "creator" FK
+        DATETIME "date_created"
+        INTEGER "changed_by" FK
+        DATETIME "date_changed"
+        BOOLEAN "voided"
+        INTEGER "voided_by" FK
+        DATETIME "date_voided"
+        STRING "void_reason"
+    }
+
+    "User" {
+        INTEGER "user_id" PK
+        STRING "uuid"
+        INTEGER "person_id" FK
+        STRING "system_id"
+        STRING "username"
+        STRING "email"
+    }
+
+    "Location" {
+        INTEGER "location_id" PK
+        STRING "name"
+        STRING "description"
+    }
+
+    "PatientProgram" {
+        INTEGER "patient_program_id" PK
+    }
+
+    "Concept" {
+        INTEGER "concept_id" PK
+        STRING "uuid"
+    }
+
+    "Privilege" {
+        STRING "privilege" PK
+        STRING "description"
+    }
+
+    %% Relationships
+    "Person" ||--o{ "PersonName" : "has"
+    "Person" ||--o{ "PersonAddress" : "has"
+    "Person" ||--o{ "PersonAttribute" : "has"
+
+    "Patient" ||--|| "Person" : "extends"
+    "Patient" ||--o{ "PatientIdentifier" : "has"
+
+    "PersonAttribute" }o--|| "PersonAttributeType" : "references"
+    "PersonAttributeType" }o--|| "Privilege" : "edit_privilege"
+
+    "PatientIdentifier" }o--|| "PatientIdentifierType" : "references"
+    "PatientIdentifier" }o--|| "Location" : "at"
+    "PatientIdentifier" }o--|| "PatientProgram" : "in_program"
+
+    "Relationship" }o--|| "RelationshipType" : "is_of_type"
+    "Person" ||--o{ "Relationship" : "as_person_a"
+    "Person" ||--o{ "Relationship" : "as_person_b"
+
+    "Person" ||--o{ "PersonMergeLog" : "as_winner"
+    "Person" ||--o{ "PersonMergeLog" : "as_loser"
+
+    %% Audit/User references
+    "Person" }o--|| "User" : "person_creator"
+    "Person" }o--|| "User" : "person_changed_by"
+    "Person" }o--|| "User" : "person_voided_by"
+
+    "PersonName" }o--|| "User" : "creator"
+    "PersonName" }o--|| "User" : "changed_by"
+    "PersonName" }o--|| "User" : "voided_by"
+
+    "PersonAddress" }o--|| "User" : "creator"
+    "PersonAddress" }o--|| "User" : "changed_by"
+    "PersonAddress" }o--|| "User" : "voided_by"
+
+    "PersonAttribute" }o--|| "User" : "creator"
+    "PersonAttribute" }o--|| "User" : "changed_by"
+    "PersonAttribute" }o--|| "User" : "voided_by"
+
+    "PersonAttributeType" }o--|| "User" : "creator"
+    "PersonAttributeType" }o--|| "User" : "changed_by"
+    "PersonAttributeType" }o--|| "User" : "retired_by"
+
+    "PatientIdentifier" }o--|| "User" : "creator"
+    "PatientIdentifier" }o--|| "User" : "changed_by"
+    "PatientIdentifier" }o--|| "User" : "voided_by"
+
+    "PatientIdentifierType" }o--|| "User" : "creator"
+    "PatientIdentifierType" }o--|| "User" : "changed_by"
+    "PatientIdentifierType" }o--|| "User" : "retired_by"
+
+    "Relationship" }o--|| "User" : "creator"
+    "Relationship" }o--|| "User" : "changed_by"
+    "Relationship" }o--|| "User" : "voided_by"
+
+    "RelationshipType" }o--|| "User" : "creator"
+    "RelationshipType" }o--|| "User" : "changed_by"
+    "RelationshipType" }o--|| "User" : "retired_by"
+
+    "PersonMergeLog" }o--|| "User" : "creator"
+    "PersonMergeLog" }o--|| "User" : "changed_by"
+    "PersonMergeLog" }o--|| "User" : "voided_by"
+
+    %% Other references
+    "Person" }o--|| "Concept" : "cause_of_death"

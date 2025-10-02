@@ -105,14 +105,38 @@
 		<property name="userDAO" ref="userDAO"/>
 	</bean>
 
-	<bean id="patientDAO" class="org.openmrs.api.db.hibernate.HibernatePatientDAO">
-		<property name="sessionFactory" ref="sessionFactory"/>
-		<property name="searchSessionFactory" ref="searchSessionFactory"/>
-	</bean>
-	<bean id="personDAO" class="org.openmrs.api.db.hibernate.HibernatePersonDAO">
-		<property name="sessionFactory" ref="sessionFactory"/>
-		<property name="searchSessionFactory" ref="searchSessionFactory"/>
-	</bean>
+	<beans profile="mongo">
+		<!-- MongoDB infrastructure -->
+		<bean id="mongoClient" class="com.mongodb.client.MongoClients" factory-method="create">
+			<constructor-arg value="mongodb://localhost:27017"/>
+		</bean>
+		<bean id="mongoDbFactory" class="org.springframework.data.mongodb.core.SimpleMongoClientDatabaseFactory">
+			<constructor-arg ref="mongoClient"/>
+			<constructor-arg value="openmrs"/>
+		</bean>
+		<bean id="mongoTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
+			<constructor-arg ref="mongoDbFactory"/>
+		</bean>
+
+		<!-- Mongo-backed DAOs -->
+		<bean id="patientDAO" class="org.openmrs.api.db.mongo.MongoPatientDAO">
+			<constructor-arg ref="mongoTemplate"/>
+		</bean>
+		<bean id="personDAO" class="org.openmrs.api.db.mongo.MongoPersonDAO">
+			<constructor-arg ref="mongoTemplate"/>
+		</bean>
+	</beans>
+
+	<beans profile="default">
+		<bean id="patientDAO" class="org.openmrs.api.db.hibernate.HibernatePatientDAO">
+			<property name="sessionFactory" ref="sessionFactory"/>
+			<property name="searchSessionFactory" ref="searchSessionFactory"/>
+		</bean>
+		<bean id="personDAO" class="org.openmrs.api.db.hibernate.HibernatePersonDAO">
+			<property name="sessionFactory" ref="sessionFactory"/>
+			<property name="searchSessionFactory" ref="searchSessionFactory"/>
+		</bean>
+	</beans>
 	<bean id="conceptDAO" class="org.openmrs.api.db.hibernate.HibernateConceptDAO">
 		<property name="sessionFactory" ref="sessionFactory"/>
 		<property name="searchSessionFactory" ref="searchSessionFactory"/>

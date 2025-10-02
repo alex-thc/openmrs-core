@@ -1,0 +1,434 @@
+graph LR
+
+%% Styles
+classDef external fill:#e6f7ff,stroke:#1890ff,stroke-width:1px,color:#000;
+classDef internal fill:#fff7e6,stroke:#fa8c16,stroke-width:1px,color:#000;
+classDef dao fill:#f6ffed,stroke:#52c41a,stroke-width:1px,color:#000;
+classDef otherService fill:#fff0f6,stroke:#eb2f96,stroke-width:1px,color:#000;
+classDef endpoint fill:#f0f5ff,stroke:#2f54eb,stroke-width:1px,color:#000;
+classDef entity fill:#fafafa,stroke:#d9d9d9,stroke-width:1px,color:#000;
+
+%% Legend
+subgraph "Legend"
+  L1["External API (Service interface method)"]:::external
+  L2["Internal (Service impl/helper)"]:::internal
+  L3["DAO (Persistence)"]:::dao
+  L4["Other Service dependency"]:::otherService
+  L5["HTTP Endpoint (not in openmrs-core)"]:::endpoint
+end
+
+%% Note on HTTP endpoints in core vs REST module
+N_REST["HTTP endpoints are provided by the 'webservices.rest' module (not in 'openmrs-core').\nThis call graph covers Java service APIs and their DAO/dependency calls."]:::endpoint
+
+%% Entities (from ERD)
+E_Person["Entity: Person"]:::entity
+E_Patient["Entity: Patient"]:::entity
+E_PName["Entity: PersonName"]:::entity
+E_PAddr["Entity: PersonAddress"]:::entity
+E_PAttr["Entity: PersonAttribute"]:::entity
+E_PAttrType["Entity: PersonAttributeType"]:::entity
+E_PIdent["Entity: PatientIdentifier"]:::entity
+E_PIdentType["Entity: PatientIdentifierType"]:::entity
+E_Rel["Entity: Relationship"]:::entity
+E_RelType["Entity: RelationshipType"]:::entity
+E_PMLog["Entity: PersonMergeLog"]:::entity
+
+%% External Service Interfaces (key methods with privileges)
+subgraph "PersonService (External API)"
+  direction LR
+  PS_savePerson["PersonService.savePerson(person)\n@Authorized: 'ADD_PERSONS'/'EDIT_PERSONS'"]:::external
+  PS_getPerson["PersonService.getPerson(id)\n@Authorized: 'GET_PERSONS'"]:::external
+  PS_getPersonByUuid["PersonService.getPersonByUuid(uuid)\n@Authorized: 'GET_PERSONS'"]:::external
+  PS_voidPerson["PersonService.voidPerson(person, reason)\n@Authorized: 'EDIT_PERSONS'"]:::external
+  PS_unvoidPerson["PersonService.unvoidPerson(person)\n@Authorized: 'EDIT_PERSONS'"]:::external
+  PS_purgePerson["PersonService.purgePerson(person)\n@Authorized: 'PURGE_PERSONS'"]:::external
+
+  %% Names
+  PS_savePersonName["PersonService.savePersonName(name)\n@Authorized: 'EDIT_PERSONS'"]:::external
+  PS_voidPersonName["PersonService.voidPersonName(name, reason)\n@Authorized: 'EDIT_PERSONS'"]:::external
+  PS_unvoidPersonName["PersonService.unvoidPersonName(name)\n@Authorized: 'EDIT_PERSONS'"]:::external
+  PS_getPersonNameByUuid["PersonService.getPersonNameByUuid(uuid)\n@Authorized: 'GET_PERSONS'"]:::external
+  PS_getPersonName["PersonService.getPersonName(id)\n@Authorized: 'GET_PERSONS'"]:::external
+
+  %% Addresses
+  PS_savePersonAddress["PersonService.savePersonAddress(address)\n@Authorized: 'EDIT_PERSONS'"]:::external
+  PS_voidPersonAddress["PersonService.voidPersonAddress(address, reason)\n@Authorized: 'EDIT_PERSONS'"]:::external
+  PS_unvoidPersonAddress["PersonService.unvoidPersonAddress(address)\n@Authorized: 'EDIT_PERSONS'"]:::external
+  PS_getPersonAddressByUuid["PersonService.getPersonAddressByUuid(uuid)\n@Authorized: 'GET_PERSONS'"]:::external
+
+  %% Attributes & Types
+  PS_getPATs["PersonService.getAllPersonAttributeTypes(includeRetired)\n@Authorized: 'GET_PERSON_ATTRIBUTE_TYPES'"]:::external
+  PS_savePAT["PersonService.savePersonAttributeType(type)\n@Authorized: 'MANAGE_PERSON_ATTRIBUTE_TYPES'"]:::external
+  PS_retirePAT["PersonService.retirePersonAttributeType(type, reason)\n@Authorized: 'MANAGE_PERSON_ATTRIBUTE_TYPES'"]:::external
+  PS_unretirePAT["PersonService.unretirePersonAttributeType(type)\n@Authorized: 'MANAGE_PERSON_ATTRIBUTE_TYPES'"]:::external
+  PS_purgePAT["PersonService.purgePersonAttributeType(type)\n@Authorized: 'PURGE_PERSON_ATTRIBUTE_TYPES'"]:::external
+  PS_getPATByName["PersonService.getPersonAttributeTypeByName(name)\n@Authorized: 'GET_PERSON_ATTRIBUTE_TYPES'"]:::external
+  PS_getPATByUuid["PersonService.getPersonAttributeTypeByUuid(uuid)\n@Authorized: 'GET_PERSON_ATTRIBUTE_TYPES'"]:::external
+  PS_getPAByUuid["PersonService.getPersonAttributeByUuid(uuid)\n@Authorized: 'GET_PERSONS'"]:::external
+  PS_checkPATLocked["PersonService.checkIfPersonAttributeTypesAreLocked()\nInternal policy check"]:::external
+  PS_getPATsForView["PersonService.getPersonAttributeTypes(personType, viewType)\nNote: anonymous access (cached)"]:::external
+
+  %% Relationships
+  PS_getAllRels["PersonService.getAllRelationships(includeVoided)\n@Authorized: 'GET_RELATIONSHIPS'"]:::external
+  PS_getRels["PersonService.getRelationships(from,to,type,dates)\n@Authorized: 'GET_RELATIONSHIPS'"]:::external
+  PS_getRelsByPerson["PersonService.getRelationshipsByPerson(person[,effectiveDate])\n@Authorized: 'GET_RELATIONSHIPS'"]:::external
+  PS_saveRel["PersonService.saveRelationship(rel)\n@Authorized: 'ADD_RELATIONSHIPS'/'EDIT_RELATIONSHIPS'"]:::external
+  PS_voidRel["PersonService.voidRelationship(rel, reason)\n@Authorized: 'DELETE_RELATIONSHIPS'"]:::external
+  PS_unvoidRel["PersonService.unvoidRelationship(rel)\n@Authorized: 'EDIT_RELATIONSHIPS'"]:::external
+  PS_purgeRel["PersonService.purgeRelationship(rel)\n@Authorized: 'PURGE_RELATIONSHIPS'"]:::external
+  PS_getRelByUuid["PersonService.getRelationshipByUuid(uuid)\n@Authorized: 'GET_RELATIONSHIPS'"]:::external
+
+  %% Relationship Types
+  PS_getAllRelTypes["PersonService.getAllRelationshipTypes(includeRetired)\n@Authorized: 'GET_RELATIONSHIP_TYPES'"]:::external
+  PS_getRelType["PersonService.getRelationshipType(id|uuid|name)\n@Authorized: 'GET_RELATIONSHIP_TYPES'"]:::external
+  PS_getRelTypesSearch["PersonService.getRelationshipTypes(name[,preferred])\n@Authorized: 'GET_RELATIONSHIP_TYPES'"]:::external
+  PS_saveRelType["PersonService.saveRelationshipType(type)\n@Authorized: 'MANAGE_RELATIONSHIP_TYPES'"]:::external
+  PS_retireRelType["PersonService.retireRelationshipType(type, reason)\n@Authorized: 'MANAGE_RELATIONSHIP_TYPES'"]:::external
+  PS_unretireRelType["PersonService.unretireRelationshipType(type)\n@Authorized: 'MANAGE_RELATIONSHIP_TYPES'"]:::external
+  PS_purgeRelType["PersonService.purgeRelationshipType(type)\n@Authorized: 'PURGE_RELATIONSHIP_TYPES'"]:::external
+
+  %% Person Merge Log
+  PS_savePML["PersonService.savePersonMergeLog(log)\nExternal (no @Authorized)"]:::external
+  PS_getPMLByUuid["PersonService.getPersonMergeLogByUuid(uuid, deserialize)\nExternal"]:::external
+  PS_getAllPMLs["PersonService.getAllPersonMergeLogs(deserialize)\nExternal"]:::external
+  PS_getWinPMLs["PersonService.getWinningPersonMergeLogs(person, deserialize)\nExternal"]:::external
+  PS_getLosePML["PersonService.getLosingPersonMergeLog(person, deserialize)\nExternal"]:::external
+
+  %% Misc
+  PS_getSimilar["PersonService.getSimilarPeople(name, birthyear, gender)\n@Authorized: 'GET_PERSONS'"]:::external
+  PS_getPeople["PersonService.getPeople(searchPhrase, dead[, voided])\n@Authorized: 'GET_PERSONS'"]:::external
+  PS_parseName["PersonService.parsePersonName(name)\nExternal (utility)"]:::external
+  PS_getRelMap["PersonService.getRelationshipMap(type)\n@Authorized: 'GET_RELATIONSHIPS'"]:::external
+end
+
+subgraph "PatientService (External API)"
+  direction LR
+  PaS_savePatient["PatientService.savePatient(patient)\n@Authorized: 'ADD_PATIENTS'/'EDIT_PATIENTS'"]:::external
+  PaS_getPatient["PatientService.getPatient(id)\n@Authorized: 'GET_PATIENTS'"]:::external
+  PaS_getPatientOrPromote["PatientService.getPatientOrPromotePerson(id)\n@Authorized: 'GET_PATIENTS'"]:::external
+  PaS_getPatientByUuid["PatientService.getPatientByUuid(uuid)\n@Authorized: 'GET_PATIENTS'"]:::external
+  PaS_getAllPatients["PatientService.getAllPatients(includeVoided)\n@Authorized: 'GET_PATIENTS'"]:::external
+  PaS_searchPatients["PatientService.getPatients(name|identifier|types|exact[, paging])\n@Authorized: 'GET_PATIENTS'"]:::external
+  PaS_voidPatient["PatientService.voidPatient(patient, reason)\n@Authorized: 'DELETE_PATIENTS'"]:::external
+  PaS_unvoidPatient["PatientService.unvoidPatient(patient)\n@Authorized: 'DELETE_PATIENTS'"]:::external
+  PaS_purgePatient["PatientService.purgePatient(patient)\n@Authorized: 'PURGE_PATIENTS'"]:::external
+  PaS_mergePatients["PatientService.mergePatients(preferred, notPreferred|list)\n@Authorized: 'EDIT_PATIENTS'"]:::external
+  PaS_processDeath["PatientService.processDeath(patient, date, cause, other)\n@Authorized: 'EDIT_PATIENTS'"]:::external
+  PaS_saveCODObs["PatientService.saveCauseOfDeathObs(patient, date, cause, other)\n@Authorized: 'GET_PATIENTS' & 'EDIT_OBS'"]:::external
+
+  %% Identifiers
+  PaS_getPatientIdentifiers["PatientService.getPatientIdentifiers(criteria)\n@Authorized: 'GET_PATIENT_IDENTIFIERS'"]:::external
+  PaS_savePatientIdentifier["PatientService.savePatientIdentifier(pi)\n@Authorized: 'ADD/EDIT_PATIENT_IDENTIFIERS'"]:::external
+  PaS_voidPatientIdentifier["PatientService.voidPatientIdentifier(pi, reason)\n@Authorized: 'DELETE_PATIENT_IDENTIFIERS'"]:::external
+  PaS_purgePatientIdentifier["PatientService.purgePatientIdentifier(pi)\n@Authorized: 'PURGE_PATIENT_IDENTIFIERS'"]:::external
+  PaS_getPatientIdentifierByUuid["PatientService.getPatientIdentifierByUuid(uuid)\n@Authorized: 'GET_PATIENT_IDENTIFIERS'"]:::external
+  PaS_isIdentifierInUse["PatientService.isIdentifierInUseByAnotherPatient(pi)\n@Authorized: 'GET_PATIENTS'"]:::external
+
+  %% Identifier Types
+  PaS_getAllPITs["PatientService.getAllPatientIdentifierTypes(includeRetired)\n@Authorized: 'GET_IDENTIFIER_TYPES'"]:::external
+  PaS_getPIT["PatientService.getPatientIdentifierType(id|uuid|name)\n@Authorized: 'GET_IDENTIFIER_TYPES'"]:::external
+  PaS_getPITsByFilter["PatientService.getPatientIdentifierTypes(name, format, required, hasCheckDigit)\n@Authorized: 'GET_IDENTIFIER_TYPES'"]:::external
+  PaS_savePIT["PatientService.savePatientIdentifierType(type)\n@Authorized: 'MANAGE_IDENTIFIER_TYPES'"]:::external
+  PaS_retirePIT["PatientService.retirePatientIdentifierType(type, reason)\n@Authorized: 'MANAGE_IDENTIFIER_TYPES'"]:::external
+  PaS_unretirePIT["PatientService.unretirePatientIdentifierType(type)\n@Authorized: 'MANAGE_IDENTIFIER_TYPES'"]:::external
+  PaS_purgePIT["PatientService.purgePatientIdentifierType(type)\n@Authorized: 'PURGE_IDENTIFIER_TYPES'"]:::external
+  PaS_checkPITLocked["PatientService.checkIfPatientIdentifierTypesAreLocked()\nInternal policy check"]:::external
+  PaS_getPIByProgram["PatientService.getPatientIdentifiersByPatientProgram(program)\n@Authorized: 'GET_PATIENT_IDENTIFIERS'"]:::external
+
+  %% Allergies
+  PaS_getAllergies["PatientService.getAllergies(patient)\nExternal"]:::external
+  PaS_setAllergies["PatientService.setAllergies(patient, allergies)\nExternal"]:::external
+  PaS_getAllergy["PatientService.getAllergy(id|uuid)\n@Authorized: 'GET_ALLERGIES'"]:::external
+  PaS_saveAllergy["PatientService.saveAllergy(allergy)\n@Authorized: 'ADD/EDIT_ALLERGIES'"]:::external
+  PaS_removeAllergy["PatientService.removeAllergy(allergy, reason)\n@Authorized: 'EDIT_ALLERGIES'"]:::external
+  PaS_voidAllergy["PatientService.voidAllergy(allergy, reason)\n@Authorized: 'DELETE_ALLERGIES'"]:::external
+
+  %% Misc
+  PaS_getCount["PatientService.getCountOfPatients(query[, includeVoided])\n@Authorized: 'GET_PATIENTS'"]:::external
+  PaS_getIdValidator["PatientService.getIdentifierValidator(class|className)\nExternal"]:::external
+  PaS_getDefaultIdValidator["PatientService.getDefaultIdentifierValidator()\nExternal"]:::external
+  PaS_getAllIdValidators["PatientService.getAllIdentifierValidators()\nExternal"]:::external
+end
+
+%% Implementations (internal) and helpers
+subgraph "PersonServiceImpl (Internal)"
+  direction LR
+  PSI_savePerson["PersonServiceImpl.savePerson\nsets preferred name/address"]:::internal
+  PSI_voidPerson["PersonServiceImpl.voidPerson"]:::internal
+  PSI_unvoidPerson["PersonServiceImpl.unvoidPerson"]:::internal
+  PSI_savePersonName["PersonServiceImpl.savePersonName"]:::internal
+  PSI_savePersonAddress["PersonServiceImpl.savePersonAddress"]:::internal
+  PSI_savePAT["PersonServiceImpl.savePersonAttributeType\nupdates GlobalProperties, search index"]:::internal
+  PSI_checkPATLocked["PersonServiceImpl.checkIfPersonAttributeTypesAreLocked\nreads GlobalProperty"]:::internal
+  PSI_getRels["PersonServiceImpl.getRelationships(…)"]:::internal
+  PSI_saveRel["PersonServiceImpl.saveRelationship\nvalidation: A != B"]:::internal
+  PSI_voidRel["PersonServiceImpl.voidRelationship"]:::internal
+  PSI_unvoidRel["PersonServiceImpl.unvoidRelationship"]:::internal
+  PSI_saveRelType["PersonServiceImpl.saveRelationshipType\nvalidates description"]:::internal
+  PSI_savePML["PersonServiceImpl.savePersonMergeLog\nserialize merged data"]:::internal
+  PSI_deserPML["PersonServiceImpl.getPersonMergeLogByUuid\n(optional deserialize)"]:::internal
+end
+
+subgraph "PatientServiceImpl (Internal)"
+  direction LR
+  PaSI_savePatient["PatientServiceImpl.savePatient\nrequires privileges; set preferred fields"]:::internal
+  PaSI_checkIds["PatientServiceImpl.checkPatientIdentifiers\nvalidate, dedupe, required types"]:::internal
+  PaSI_voidPatient["PatientServiceImpl.voidPatient"]:::internal
+  PaSI_unvoidPatient["PatientServiceImpl.unvoidPatient"]:::internal
+  PaSI_mergePatients["PatientServiceImpl.mergePatients\nmerge visits, encounters, programs, rels, obs, ids, names, addresses, attrs"]:::internal
+  PaSI_processDeath["PatientServiceImpl.processDeath\nset death flags; save; exitFromCare; save COD obs"]:::internal
+  PaSI_saveCODObs["PatientServiceImpl.saveCauseOfDeathObs\ncreate/update Obs"]:::internal
+  PaSI_exitFromCare["PatientServiceImpl.exitFromCare\ncreate reason-for-exit Obs"]:::internal
+  PaSI_savePIT["PatientServiceImpl.savePatientIdentifierType"]:::internal
+  PaSI_checkPITLocked["PatientServiceImpl.checkIfPatientIdentifierTypesAreLocked\nreads GlobalProperty"]:::internal
+  PaSI_isIdInUse["PatientServiceImpl.isIdentifierInUseByAnotherPatient"]:::internal
+  PaSI_setAllergies["PatientServiceImpl.setAllergies\nvoid edited/removed; set statuses"]:::internal
+end
+
+%% DAOs
+subgraph "PersonDAO (Persistence)"
+  PDO_savePerson["PersonDAO.savePerson"]:::dao
+  PDO_getPerson["PersonDAO.getPerson / getPersonByUuid"]:::dao
+  PDO_deletePerson["PersonDAO.deletePerson"]:::dao
+  PDO_saveName["PersonDAO.savePersonName"]:::dao
+  PDO_saveAddress["PersonDAO.savePersonAddress"]:::dao
+  PDO_getNameByUuid["PersonDAO.getPersonNameByUuid"]:::dao
+  PDO_getNameById["PersonDAO.getPersonName(id)"]:::dao
+  PDO_getAddressByUuid["PersonDAO.getPersonAddressByUuid"]:::dao
+  PDO_getPATs["PersonDAO.getAllPersonAttributeTypes / getPersonAttributeTypes"]:::dao
+  PDO_savePAT["PersonDAO.savePersonAttributeType / deletePersonAttributeType"]:::dao
+  PDO_getPATByUuid["PersonDAO.getPersonAttributeTypeByUuid"]:::dao
+  PDO_getPA["PersonDAO.getPersonAttribute / getPersonAttributeByUuid"]:::dao
+  PDO_getRels["PersonDAO.getRelationships (variants) / getAllRelationships"]:::dao
+  PDO_saveRel["PersonDAO.saveRelationship / deleteRelationship"]:::dao
+  PDO_relType["PersonDAO.getRelationshipType(s) / save / delete"]:::dao
+  PDO_relByUuid["PersonDAO.getRelationshipByUuid / getRelationshipTypeByUuid"]:::dao
+  PDO_pml["PersonDAO.savePersonMergeLog / get*PersonMergeLog*"]:::dao
+  PDO_similarPeople["PersonDAO.getSimilarPeople / getPeople"]:::dao
+end
+
+subgraph "PatientDAO (Persistence)"
+  PaDO_savePatient["PatientDAO.savePatient / deletePatient"]:::dao
+  PaDO_getPatient["PatientDAO.getPatient / getPatientByUuid"]:::dao
+  PaDO_getAllPatients["PatientDAO.getAllPatients / getPatients (variants)"]:::dao
+  PaDO_ids["PatientDAO.getPatientIdentifiers / save / delete / getByUuid / getById / isInUse"]:::dao
+  PaDO_idTypes["PatientDAO.getAllPatientIdentifierTypes / getBy* / save / delete / findByFilter"]:::dao
+  PaDO_dupByAttrs["PatientDAO.getDuplicatePatientsByAttributes"]:::dao
+  PaDO_counts["PatientDAO.getCountOfPatients(query[, includeVoided])"]:::dao
+  PaDO_allergies["PatientDAO.getAllergies / getAllergy(Status) / saveAllergies / saveAllergy"]:::dao
+  PaDO_idsByProgram["PatientDAO.getPatientIdentifierByProgram(program)"]:::dao
+end
+
+%% Other service dependencies (indirect calls)
+OS_Admin["AdministrationService.getGlobalProperty / saveGlobalProperty"]:::otherService
+OS_SearchIndex["Context.updateSearchIndexForType('PersonAttribute')"]:::otherService
+OS_Serialization["SerializationService.serialize/deserialize"]:::otherService
+OS_Encounter["EncounterService.getEncounters/saveEncounter"]:::otherService
+OS_Visit["VisitService.getVisitsByPatient/saveVisit"]:::otherService
+OS_Program["ProgramWorkflowService.getPatientPrograms/savePatientProgram"]:::otherService
+OS_PersonSvc["PersonService (cross-calls): get/save/void Relationship(s), savePersonMergeLog, etc."]:::otherService
+OS_Obs["ObsService.getObservationsByPerson(save)/getObservationsByPersonAndConcept/saveObs"]:::otherService
+OS_Order["OrderService.getAllOrdersByPatient"]:::otherService
+OS_User["UserService.getUsersByPerson/saveUser"]:::otherService
+OS_Concept["ConceptService.getConcept / getConceptByUuid"]:::otherService
+OS_Location["LocationService.getDefaultLocation"]:::otherService
+
+%% Entity associations to service surfaces
+E_Person --> PS_savePerson
+E_Person --> PS_getPerson
+E_Person --> PS_getPersonByUuid
+E_Person --> PS_voidPerson
+E_Person --> PS_unvoidPerson
+E_Person --> PS_purgePerson
+E_PName --> PS_savePersonName
+E_PName --> PS_voidPersonName
+E_PName --> PS_unvoidPersonName
+E_PName --> PS_getPersonNameByUuid
+E_PName --> PS_getPersonName
+E_PAddr --> PS_savePersonAddress
+E_PAddr --> PS_voidPersonAddress
+E_PAddr --> PS_unvoidPersonAddress
+E_PAddr --> PS_getPersonAddressByUuid
+E_PAttr --> PS_getPAByUuid
+E_PAttrType --> PS_getPATs
+E_PAttrType --> PS_savePAT
+E_PAttrType --> PS_retirePAT
+E_PAttrType --> PS_unretirePAT
+E_PAttrType --> PS_purgePAT
+E_PAttrType --> PS_getPATByName
+E_Rel --> PS_getAllRels
+E_Rel --> PS_getRels
+E_Rel --> PS_getRelsByPerson
+E_Rel --> PS_saveRel
+E_Rel --> PS_voidRel
+E_Rel --> PS_unvoidRel
+E_Rel --> PS_purgeRel
+E_Rel --> PS_getRelByUuid
+E_RelType --> PS_getAllRelTypes
+E_RelType --> PS_getRelType
+E_RelType --> PS_getRelTypesSearch
+E_RelType --> PS_saveRelType
+E_RelType --> PS_retireRelType
+E_RelType --> PS_unretireRelType
+E_RelType --> PS_purgeRelType
+E_PMLog --> PS_savePML
+E_PMLog --> PS_getPMLByUuid
+E_PMLog --> PS_getAllPMLs
+E_PMLog --> PS_getWinPMLs
+E_PMLog --> PS_getLosePML
+
+E_Patient --> PaS_savePatient
+E_Patient --> PaS_getPatient
+E_Patient --> PaS_getPatientOrPromote
+E_Patient --> PaS_getPatientByUuid
+E_Patient --> PaS_getAllPatients
+E_Patient --> PaS_searchPatients
+E_Patient --> PaS_voidPatient
+E_Patient --> PaS_unvoidPatient
+E_Patient --> PaS_purgePatient
+E_Patient --> PaS_mergePatients
+E_Patient --> PaS_processDeath
+E_PIdent --> PaS_getPatientIdentifiers
+E_PIdent --> PaS_savePatientIdentifier
+E_PIdent --> PaS_voidPatientIdentifier
+E_PIdent --> PaS_purgePatientIdentifier
+E_PIdent --> PaS_getPatientIdentifierByUuid
+E_PIdent --> PaS_isIdentifierInUse
+E_PIdentType --> PaS_getAllPITs
+E_PIdentType --> PaS_getPIT
+E_PIdentType --> PaS_getPITsByFilter
+E_PIdentType --> PaS_savePIT
+E_PIdentType --> PaS_retirePIT
+E_PIdentType --> PaS_unretirePIT
+E_PIdentType --> PaS_purgePIT
+E_PIdentType --> PaS_checkPITLocked
+E_PIdent --> PaS_getPIByProgram
+
+%% External -> Internal (impl)
+PS_savePerson --> PSI_savePerson
+PS_voidPerson --> PSI_voidPerson
+PS_unvoidPerson --> PSI_unvoidPerson
+PS_savePersonName --> PSI_savePersonName
+PS_savePersonAddress --> PSI_savePersonAddress
+PS_savePAT --> PSI_savePAT
+PS_checkPATLocked --> PSI_checkPATLocked
+PS_getRels --> PSI_getRels
+PS_saveRel --> PSI_saveRel
+PS_voidRel --> PSI_voidRel
+PS_unvoidRel --> PSI_unvoidRel
+PS_saveRelType --> PSI_saveRelType
+PS_savePML --> PSI_savePML
+PS_getPMLByUuid --> PSI_deserPML
+
+PaS_savePatient --> PaSI_savePatient
+PaS_voidPatient --> PaSI_voidPatient
+PaS_unvoidPatient --> PaSI_unvoidPatient
+PaS_mergePatients --> PaSI_mergePatients
+PaS_processDeath --> PaSI_processDeath
+PaS_saveCODObs --> PaSI_saveCODObs
+PaS_savePIT --> PaSI_savePIT
+PaS_checkPITLocked --> PaSI_checkPITLocked
+PaS_isIdentifierInUse --> PaSI_isIdInUse
+PaS_setAllergies --> PaSI_setAllergies
+
+%% Impl -> DAO
+PSI_savePerson --> PDO_savePerson
+PSI_voidPerson --> PDO_savePerson
+PSI_unvoidPerson --> PDO_savePerson
+PSI_savePersonName --> PDO_saveName
+PSI_savePersonAddress --> PDO_saveAddress
+PSI_savePAT --> PDO_savePAT
+PSI_checkPATLocked --> OS_Admin
+PS_getPATs --> PDO_getPATs
+PS_getPATByName --> PDO_getPATs
+PS_getPATByUuid --> PDO_getPATByUuid
+PS_getPAByUuid --> PDO_getPA
+PS_getPerson --> PDO_getPerson
+PS_getPersonByUuid --> PDO_getPerson
+PS_getPersonName --> PDO_getNameById
+PS_getPersonNameByUuid --> PDO_getNameByUuid
+PS_getPersonAddressByUuid --> PDO_getAddressByUuid
+PS_purgePerson --> PDO_deletePerson
+PS_getAllRels --> PDO_getRels
+PS_getRels --> PDO_getRels
+PS_getRelsByPerson --> PS_getRels
+PS_saveRel --> PDO_saveRel
+PS_voidRel --> PS_saveRel
+PS_unvoidRel --> PS_saveRel
+PS_purgeRel --> PDO_saveRel
+PS_getRelByUuid --> PDO_relByUuid
+PS_getAllRelTypes --> PDO_relType
+PS_getRelType --> PDO_relType
+PS_getRelTypesSearch --> PDO_relType
+PS_saveRelType --> PDO_relType
+PS_retireRelType --> PS_saveRelType
+PS_unretireRelType --> PS_saveRelType
+PS_savePML --> PDO_pml
+PS_getPMLByUuid --> PDO_pml
+PS_getAllPMLs --> PDO_pml
+PS_getWinPMLs --> PDO_pml
+PS_getLosePML --> PDO_pml
+PS_getSimilar --> PDO_similarPeople
+PS_getPeople --> PDO_similarPeople
+
+PaSI_savePatient --> PaDO_savePatient
+PaSI_voidPatient --> PaDO_savePatient
+PaSI_unvoidPatient --> PaDO_savePatient
+PaS_getPatient --> PaDO_getPatient
+PaS_getPatientOrPromote --> PS_getPerson
+PaS_getPatientByUuid --> PaDO_getPatient
+PaS_getAllPatients --> PaDO_getAllPatients
+PaS_searchPatients --> PaDO_getAllPatients
+PaSI_checkIds --> PaS_getAllPITs
+PaS_getPatientIdentifiers --> PaDO_ids
+PaS_savePatientIdentifier --> PaDO_ids
+PaS_voidPatientIdentifier --> PaS_savePatientIdentifier
+PaS_purgePatientIdentifier --> PaDO_ids
+PaS_getPatientIdentifierByUuid --> PaDO_ids
+PaSI_isIdInUse --> PaDO_ids
+PaS_getAllPITs --> PaDO_idTypes
+PaSI_checkPITLocked --> OS_Admin
+PaS_getPIT --> PaDO_idTypes
+PaS_getPITsByFilter --> PaDO_idTypes
+PaS_savePIT --> PaDO_idTypes
+PaS_retirePIT --> PaS_savePIT
+PaS_unretirePIT --> PaS_savePIT
+PaS_purgePIT --> PaDO_idTypes
+PaS_getPIByProgram --> PaDO_idsByProgram
+PaS_getCount --> PaDO_counts
+PaS_getAllergies --> PaDO_allergies
+PaSI_setAllergies --> PaDO_allergies
+PaS_getAllergy --> PaDO_allergies
+PaS_saveAllergy --> PaDO_allergies
+PaS_removeAllergy --> PaS_voidAllergy
+PaS_voidAllergy --> PaDO_allergies
+
+%% Impl -> Other services (indirect)
+PSI_savePAT --> OS_Admin
+PSI_savePAT --> OS_SearchIndex
+PSI_savePML --> OS_Serialization
+PSI_deserPML --> OS_Serialization
+PS_getPATsForView --> OS_Admin
+PS_checkPATLocked --> OS_Admin
+
+PaSI_savePatient --> PaSI_checkIds
+PaSI_mergePatients --> OS_Order
+PaSI_mergePatients --> OS_Visit
+PaSI_mergePatients --> OS_Encounter
+PaSI_mergePatients --> OS_Program
+PaSI_mergePatients --> OS_PersonSvc
+PaSI_mergePatients --> OS_Obs
+PaSI_mergePatients --> OS_User
+PaSI_mergePatients --> PS_savePML
+PaSI_processDeath --> PaSI_saveCODObs
+PaSI_processDeath --> PaSI_exitFromCare
+PaSI_exitFromCare --> PaSI_saveCODObs
+PaSI_saveCODObs --> OS_Admin
+PaSI_saveCODObs --> OS_Concept
+PaSI_saveCODObs --> OS_Location
+PaSI_saveCODObs --> OS_Obs
+PaS_getDefaultIdValidator --> OS_Admin
+
+%% External note to endpoints module
+PS_getPerson -. "consumed by REST module controllers" .-> N_REST
+PaS_savePatient -. "consumed by REST module controllers" .-> N_REST
